@@ -1,0 +1,133 @@
+---
+title: "LangtonsAnt"
+author: "Samir Belfaquir"
+date: "16/03/2021"
+output: word_document
+params:
+  n: 100
+  size: 1
+  iterations: 10600
+---
+
+## Présentation
+
+Le principe de la fourmi de Langton est le suivant : une fourmi apparaît sur une case blanche (représenté par 0).
+- Lorsque la fourmi est sur une case blanche, elle la passe en noire et tourne à gauche.
+- Lorsque la fourmi est sur une case noire, elle la passe en blanche et tourne à droite.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+n=params$n
+size=params$size
+iterations=params$iterations
+
+```
+
+
+
+## Generation des donnees
+Soit une matrice de `r params$n`*`r params$n` avec 1 fourmi et un nombre d'itérations maximum de `r params$iterations`
+
+
+```{r cars, include=FALSE}
+langton_ant=function(n, num, iterationsMax) 
+  {
+    map = matrix(data = n, nrow = n, ncol = n)
+    iteration = 1
+    tab <- array(map, dim = c(n, n, iterationsMax))
+    if(num == 1)
+    {
+      p = floor(c(n/2, n/2))
+      d = sample(1:4, 1)
+      
+      while((p[1] > 0 & p[1] <= n 
+            & p[2] > 0 & p[2] <= n) & iteration < iterationsMax) {
+          
+        tab[1:n,1:n,iteration] = map
+          
+          if(map[p[1], p[2]] == 1)
+          {
+            map[p[1], p[2]] = 0
+            p = p + switch(d, c(0, 1), c(-1, 0), c(0, -1), c(1, 0))
+            d = ifelse(d == 4, 1, d + 1)
+          }else{
+            map[p[1], p[2]] = 1
+            p = p + switch(d, c(0, -1), c(1, 0), c(0, 1), c(-1, 0))
+            d = ifelse(d == 1, 4, d - 1)
+         }
+        iteration = iteration + 1
+      }
+    }else if(num == 2)
+    {
+      p1 = floor(c(n/2, n/2))
+      d1 = sample(1:4, 1)
+      p2 =  floor(c((n/3), (n/3)))
+      d2 = sample(1:4, 1)
+      
+      while(((p1[1] > 0 & p1[1] <= n 
+            & p1[2] > 0 & p1[2] <= n) 
+            & 
+            (p2[1] > 0 & p2[1] <= n 
+            & p2[2] > 0 & p2[2] <= n)) & iteration < iterationsMax) {
+        
+        tab[1:n,1:n,iteration] = map
+       
+          if(map[p1[1], p1[2]] == 1)
+          {
+            map[p1[1], p1[2]] = 0
+            p1 = p1 + switch(d1, c(0, 1), c(-1, 0), c(0, -1), c(1, 0))
+            d1 = ifelse(d1 == 4, 1, d1 + 1)
+          }else{
+            map[p1[1], p1[2]] = 1
+            p1 = p1 + switch(d1, c(0, -1), c(1, 0), c(0, 1), c(-1, 0))
+            d1 = ifelse(d1 == 1, 4, d1 - 1)
+          }
+        
+          if(map[p2[1], p2[2]] == 1)
+          {
+            map[p2[1], p2[2]] = 0
+            p2 = p2 + switch(d2, c(0, -1), c(1, 0), c(0, 1), c(-1, 0))
+            d2 = ifelse(d2 == 1, 4, d2 - 1)
+          }else{
+            map[p2[1], p2[2]] = 1
+            p2 = p2 + switch(d2, c(0, 1), c(-1, 0), c(0, -1), c(1, 0))
+            d2 = ifelse(d2 == 4, 1, d2 + 1)
+          }
+        iteration = iteration + 1
+      }
+      
+    }
+    return(tab)
+  }
+```
+
+
+
+```{r 1antp1, echo=FALSE}
+array = langton_ant(n,size,iterations)
+# image(as.matrix(array[,,iterations/2]), xaxt = "n", yaxt = "n", bty = "n",xlim=c(0,1),ylim=c(0,1), col=grey(c(0,1)))
+image(array[,,iterations/2], xaxt = "n", yaxt = "n", bty = "n", col=grey(c(0,1)))
+
+```
+
+On peut voir ici un exemple de fourmi de langton à la `r params$iterations/2`ième itération. Dans cette image, nous ne voyons rien de particulier, si ce n'est que la forme est chaotique. C'est la seconde étape (la première étant une image assez symétrique).
+
+```{r 1antp2, echo=FALSE}
+image(array[,,iterations-1], xaxt = "n", yaxt = "n", bty = "n", col=grey(c(0,1)))
+
+
+```
+On peut voir ici un exemple de fourmi de langton à la `r params$iterations`ième itération. On constate une excroissance soudaine apparaître. C'est ce qu'on appelle "l'autoroute", et c'est la dernière étape. Passé un certain nombre d'itérations, la fourmi va soudainement entrer dans une boucle qui la fera aller dans la même direction indéfiniement. C'est la particularité de la fourmi de Langton.
+
+
+Nous pouvons aussi avoir deux fourmis.
+
+
+```{r 2ants, echo=FALSE}
+size = 2
+array = langton_ant(n,size,iterations)
+image(array[,,iterations/2], xaxt = "n", yaxt = "n", bty = "n", col=grey(c(0,1)))
+
+```
+Même lorsqu'on réalise cette expérience avec deux fourmis, elles arriveront à un moment où elles prendront l'autoroute. Cependant, avec de la chance, l'autoroute peut cette fois s'arrêter si l'une d'elle va dans une zone déjà explorée par l'autre fourmi.
